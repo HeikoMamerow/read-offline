@@ -10,9 +10,10 @@ Author URI: http://heikomamerow.de
 /*
 Changelog:
 v0.1
-- forked v0.1.9 from https://github.com/soderlind/read-offline
-- uncomment "PHP 4 Compatible Constructor" below
-
+- Forked v0.1.9 from https://github.com/soderlind/read-offline
+- Uncomment "PHP 4 Compatible Constructor" below
+- Uncomment the old content and inject as file
+- Clean the output buffer
 */
 
 
@@ -232,14 +233,19 @@ if (!class_exists('ps_read_offline')) {
 					$author_lastfirst = sprintf("%s, %s",get_the_author_meta('user_firstname',$post->post_author),get_the_author_meta('user_lastname',$post->post_author));
 
 					$html = '<h1 class="entry-title">' . get_the_title($post->ID) . '</h1>';
-					$content = $post->post_content;
-					$content = preg_replace("/\[\\/?readoffline(\\s+.*?\]|\])/i", "", $content); // remove all [readonline] shortcodes
 
 					// Tweak: uncomment the old content and inject the content from W3T-Cache
-//					 $html .= apply_filters('the_content', $content);
-//					$html .= file_get_contents('http://www.hielscher.com/ru/about1.htm') ;
-					$html .= file_get_contents(get_page_link()) ;
-//					$html .= file_get_contents('http://www.hielscher.com/' . get_page_uri(8419)) ;
+					// $content = $post->post_content;
+					// $content = preg_replace("/\[\\/?readoffline(\\s+.*?\]|\])/i", "", $content); // remove all [readonline] shortcodes
+					// $html .= apply_filters('the_content', $content);
+
+					// Tweak: Clean the output buffer
+					ob_end_clean();
+
+
+					$current_url = strtolower('http://www.hielscher.com' . $_SERVER["REQUEST_URI"]);
+					$current_url = str_replace('/clients/hielscher/local-test/wordpress', '', $current_url);
+					$html .= file_get_contents($current_url);
 
 
 
@@ -300,8 +306,7 @@ if (!class_exists('ps_read_offline')) {
 						case 'pdf':
 							require_once "library/mpdf/mpdf.inc.php";
 
-							// Tweak: Clean the output buffer
-							ob_end_clean();
+
 
 							$pdf = new mPDF();
 							$pdf->SetTitle($post->post_title);
